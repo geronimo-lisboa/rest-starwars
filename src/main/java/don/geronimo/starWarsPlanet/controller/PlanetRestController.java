@@ -1,5 +1,6 @@
 package don.geronimo.starWarsPlanet.controller;
 
+import don.geronimo.starWarsPlanet.model.Planet;
 import don.geronimo.starWarsPlanet.repository.PlanetRepository;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,16 +29,22 @@ public class PlanetRestController {
     public List<Object> list() {
         return null;
     }
+
+    @GetMapping("/planet/all/")
+    public List<Planet> getAll() {
+        return repo.findAll();
+    }
     
-    @GetMapping("/id/{id}")
-    public Object getById(@PathVariable String id) {
+    
+    @GetMapping("/planet/id/{id}")
+    public Planet getById(@PathVariable String id) {
         final int _id = Integer.parseInt(id);
         return repo.findById(_id).get();
     }
 
-    @GetMapping("/name/{name}")
-    public Object getByName(@PathVariable String name) {
-        return repo.findByName(name);
+    @GetMapping("/planet/name/{name}")
+    public Planet getByName(@PathVariable String name) {
+        return repo.findByName(name).get();
     }
     
     @PutMapping("/{id}")

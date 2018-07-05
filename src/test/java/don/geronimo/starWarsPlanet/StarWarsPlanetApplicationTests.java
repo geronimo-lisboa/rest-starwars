@@ -1,5 +1,7 @@
 package don.geronimo.starWarsPlanet;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
 import don.geronimo.starWarsPlanet.model.Planet;
 import don.geronimo.starWarsPlanet.repository.PlanetRepository;
 import java.io.BufferedReader;
@@ -10,7 +12,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.assertj.core.internal.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,7 +70,7 @@ public class StarWarsPlanetApplicationTests {
         repo.insert(newPlanet);
         //Faz um request pra pegar o dado 
         RestTemplate restTemplate = new RestTemplate();
-        Planet returningPlanet = restTemplate.getForEntity("http://localhost:8080/swplanets/id/{id}", Planet.class, "10").getBody();
+        Planet returningPlanet = restTemplate.getForEntity("http://localhost:8080/swplanets/planet/id/{id}", Planet.class, "10").getBody();
         assertPlanets(newPlanet, returningPlanet);
     }
 
@@ -83,11 +87,37 @@ public class StarWarsPlanetApplicationTests {
         repo.insert(newPlanet);
         //Faz um request pra pegar o dado 
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Planet> re = restTemplate.getForEntity("http://localhost:8080/swplanets/name/{id}", Planet.class, "fox");
+        ResponseEntity<Planet> re = restTemplate.getForEntity("http://localhost:8080/swplanets/planet/name/{id}", Planet.class, "fox");
         Planet returningPlanet = re.getBody();
         assertPlanets(newPlanet, returningPlanet);
     }
 
+    @Test
+    public void testGetAll() throws MalformedURLException, IOException {
+        repo.deleteAll();
+        Planet a = new Planet(50,"trantor","cool","urban");
+        Planet b = new Planet(100,"pandora","moist","jungle");
+        repo.insert(a);
+        repo.insert(b);
+        RestTemplate restTemplate = new RestTemplate();
+        String jsonList = restTemplate.getForObject("http://localhost:8080/swplanets/planet/all/", String.class);
+        ObjectMapper mapper = new ObjectMapper();
+        CollectionType javaType = mapper.getTypeFactory().constructCollectionType(List.class, Planet.class);
+        List<Planet> planets = mapper.readValue(jsonList, javaType);
+        boolean aOk=false;
+        boolean bOk=false;
+        
+        for(Object _p : planets){
+            Planet currentPlanet = (Planet)_p;
+            if(currentPlanet.getName().equals(a.getName()))
+                aOk = true;
+            if(currentPlanet.getName().equals(b.getName()))
+                bOk = true;
+        }
+        if(!aOk || !bOk)
+            throw new RuntimeException("return list is wrong");
+    }
+    
     
     @After
     public void endTest() {

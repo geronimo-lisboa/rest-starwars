@@ -13,6 +13,18 @@ public class Planet {
     private String terrain;
     private Integer frequency;
 
+    public Planet(Integer id, String name, String climate, String terrain) {
+        this.id = id;
+        this.name = name;
+        this.climate = climate;
+        this.terrain = terrain;
+    }
+
+    public Planet() {
+    }
+
+    
+    
     public Integer getId() {
         return id;
     }
