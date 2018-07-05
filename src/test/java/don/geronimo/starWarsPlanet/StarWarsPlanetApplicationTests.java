@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 import utils.ParameterStringBuilder;
@@ -24,7 +25,13 @@ import utils.ParameterStringBuilder;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class StarWarsPlanetApplicationTests {
-
+    private void assertPlanets(Planet a, Planet b){
+        assert (a.getClimate().equals(b.getClimate()));
+        assert (a.getName().equals(b.getName()));
+        assert (a.getTerrain().equals(b.getTerrain()));
+        assert (a.getFrequency().equals(b.getFrequency()));
+ 
+    }
     @Autowired
     private PlanetRepository repo;
 
@@ -43,15 +50,11 @@ public class StarWarsPlanetApplicationTests {
         p.setFrequency(1);
         repo.insert(p);
         Planet inDb = repo.findByName("bar").get();
-        assert (inDb.getClimate().equals(p.getClimate()));
-        assert (inDb.getName().equals(p.getName()));
-        assert (inDb.getTerrain().equals(p.getTerrain()));
-        assert (inDb.getFrequency().equals(p.getFrequency()));
-
+        assertPlanets(p, inDb);
     }
 
     @Test
-    public void testGetPlanet() throws MalformedURLException, IOException {
+    public void testGetPlanetById() throws MalformedURLException, IOException {
         //Bota no banco
         repo.deleteAll();
         Planet newPlanet = new Planet();
@@ -63,9 +66,29 @@ public class StarWarsPlanetApplicationTests {
         repo.insert(newPlanet);
         //Faz um request pra pegar o dado 
         RestTemplate restTemplate = new RestTemplate();
-        String result = restTemplate.getForObject("http://localhost:8080/swplanets/{id}",  String.class, "10");
+        Planet returningPlanet = restTemplate.getForEntity("http://localhost:8080/swplanets/id/{id}", Planet.class, "10").getBody();
+        assertPlanets(newPlanet, returningPlanet);
     }
 
+    @Test
+    public void testGetPlanetByName() throws MalformedURLException, IOException {
+        //Bota no banco
+        repo.deleteAll();
+        Planet newPlanet = new Planet();
+        newPlanet.setClimate("able");
+        newPlanet.setId(10);
+        newPlanet.setName("fox");
+        newPlanet.setTerrain("easy");
+        newPlanet.setFrequency(1);
+        repo.insert(newPlanet);
+        //Faz um request pra pegar o dado 
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Planet> re = restTemplate.getForEntity("http://localhost:8080/swplanets/name/{id}", Planet.class, "fox");
+        Planet returningPlanet = re.getBody();
+        assertPlanets(newPlanet, returningPlanet);
+    }
+
+    
     @After
     public void endTest() {
         repo.deleteAll();
