@@ -7,13 +7,13 @@ import org.springframework.data.annotation.Id;
 
 public class Planet {
     @Id
-    private Integer id;
+    private String id;
     private String name;
     private String climate;
     private String terrain;
     private Integer frequency;
 
-    public Planet(Integer id, String name, String climate, String terrain) {
+    public Planet(String id, String name, String climate, String terrain) {
         this.id = id;
         this.name = name;
         this.climate = climate;
@@ -25,11 +25,11 @@ public class Planet {
 
     
     
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 

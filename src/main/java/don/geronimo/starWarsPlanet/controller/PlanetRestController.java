@@ -44,13 +44,19 @@ public class PlanetRestController {
     /** Pega o planeta pelo ID. Esse id não é o id do planeta no serviço de star wars, embora possa ser identico**/
     public Planet getById(@PathVariable String id) {
         final int _id = Integer.parseInt(id);
-        return repo.findById(_id).get();
+        return repo.findById(id).get();
     }
 
     @GetMapping("/planet/name/{name}")
     /**Pega pelo nome. O nome tem que coincidir exatamente, é case sensitive também.**/
     public Planet getByName(@PathVariable String name) {
         return repo.findByName(name).get();
+    }
+    
+    private void setPlanetFrequency(Planet p) throws IOException{
+        PlanetApparitionsSource apparitionsSource = new PlanetApparitionsSource(p.getName());
+        Optional<Integer> amount = apparitionsSource.getNumberOfApparition();
+        p.setFrequency(amount.orElse(0));       
     }
     
     @PutMapping("/planet/")
@@ -66,9 +72,7 @@ public class PlanetRestController {
             return resp;
         }else{
             //Se não, pega a qtd de aparições  https://swapi.co/api/people/?search=r2
-            PlanetApparitionsSource apparitionsSource = new PlanetApparitionsSource(newPlanet.getName());
-            Optional<Integer> amount = apparitionsSource.getNumberOfApparition();
-            newPlanet.setFrequency(amount.orElse(0));
+            setPlanetFrequency(newPlanet);
             //Guarda
             Planet resultingPlanet = repo.insert(newPlanet);
             //Retorna
@@ -82,11 +86,21 @@ public class PlanetRestController {
         }
     }
     
-    @PostMapping
+    @PostMapping("/planet/")
     /**Insere ou atualiza o planeta dado. Também consulta as informações remotas sobre o numero de aparições
      nos filmes**/
-    public ResponseEntity<?> post(@RequestBody Object input) {
-        return null;
+    public ResponseEntity<?> post(@RequestBody Planet input) throws IOException {
+        try{
+        setPlanetFrequency(input);
+        Planet saved = repo.save(input);
+        ResponseEntity resp = new ResponseEntity(saved, HttpStatus.OK);
+        return resp;
+        }
+        catch(Exception ex){
+            ex.printStackTrace();
+            ResponseEntity resp = new ResponseEntity("erro", HttpStatus.INTERNAL_SERVER_ERROR);
+            return resp;
+        }
     }
     
     @DeleteMapping("/planet/id/{id}")
@@ -94,7 +108,7 @@ public class PlanetRestController {
     public ResponseEntity<?> deletePlanetById(@PathVariable String id) {
         try
         {
-            Optional<Planet> p = repo.findById(Integer.parseInt(id));   
+            Optional<Planet> p = repo.findById(id);   
             repo.delete(p.get());
             ResponseEntity resp = new ResponseEntity("deletado", HttpStatus.OK);
             return resp;

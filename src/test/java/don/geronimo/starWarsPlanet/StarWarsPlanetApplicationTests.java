@@ -47,11 +47,54 @@ public class StarWarsPlanetApplicationTests {
     public void beginTest() {
         repo.deleteAll();
     }
+    
+    @Test
+    public void testNoId() throws InterruptedException
+    {
+        repo.deleteAll();
+        Planet np1 = new Planet();
+        np1.setClimate("cold");
+        np1.setTerrain("mountainous");
+        np1.setName("Hoth");
+        String url = "http://localhost:8080/swplanets/planet/";
+        RestTemplate restTemplate = new RestTemplate();
+        Planet returnedPlanet1 = restTemplate.postForObject(url, np1, Planet.class);  
+        Thread.sleep(100);
+
+        Planet np2 = new Planet();
+        np2.setClimate("temperate");
+        np2.setTerrain("urban");
+        np2.setName("Coruscant");
+        Planet returnedPlanet2 = restTemplate.postForObject(url, np2, Planet.class);  
+        Thread.sleep(100);
+        
+        
+        assert(returnedPlanet1.getId()!=null);
+        assert(returnedPlanet2.getId()!=null);
+        assert(! returnedPlanet1.getId().equals(returnedPlanet2.getId()));
+        
+    }
+    
+    @Test
+    public void testUpdate() throws InterruptedException{
+        repo.deleteAll();
+        Planet newPlanet = new Planet("50","Charlie", "cold", "rocky");
+        String url = "http://localhost:8080/swplanets/planet/";
+        RestTemplate restTemplate = new RestTemplate();
+        Planet returnedPlanet = restTemplate.postForObject(url, newPlanet, Planet.class);  // postForLocation(url, newPlanet); ///(url, newPlanet);
+        Thread.sleep(100);
+        returnedPlanet.setTerrain("water");       
+        Planet updatedPlanet = restTemplate.postForObject(url, returnedPlanet, Planet.class);  // postForLocation(url, newPlanet); ///(url, newPlanet);
+        Planet dbPlanet = repo.findById("50").get();
+        assert(dbPlanet.getTerrain().equals(returnedPlanet.getTerrain()));
+        
+    }
+    
     @Test
     public void testDelete(){
         repo.deleteAll();
-        Planet planetToDeleteByName = new Planet(50, "Charlie", "Papa", "Hotel");
-        Planet planetToDeleteById = new Planet(100, "Easy", "Fox", "Tango");
+        Planet planetToDeleteByName = new Planet("50", "Charlie", "Papa", "Hotel");
+        Planet planetToDeleteById = new Planet("100", "Easy", "Fox", "Tango");
         repo.insert(planetToDeleteById);
         repo.insert(planetToDeleteByName);
         
@@ -70,7 +113,7 @@ public class StarWarsPlanetApplicationTests {
     public void testInsertInDb() {
         Planet p = new Planet();
         p.setClimate("foo");
-        p.setId(1);
+        p.setId("1");
         p.setName("bar");
         p.setTerrain("quid");
         p.setFrequency(1);
@@ -85,7 +128,7 @@ public class StarWarsPlanetApplicationTests {
         repo.deleteAll();
         Planet newPlanet = new Planet();
         newPlanet.setClimate("able");
-        newPlanet.setId(10);
+        newPlanet.setId("10");
         newPlanet.setName("baker");
         newPlanet.setTerrain("charlie");
         newPlanet.setFrequency(2);
@@ -102,7 +145,7 @@ public class StarWarsPlanetApplicationTests {
         repo.deleteAll();
         Planet newPlanet = new Planet();
         newPlanet.setClimate("able");
-        newPlanet.setId(10);
+        newPlanet.setId("10");
         newPlanet.setName("fox");
         newPlanet.setTerrain("easy");
         newPlanet.setFrequency(1);
@@ -118,7 +161,7 @@ public class StarWarsPlanetApplicationTests {
     @Test
     public void testPutNaboo()throws Exception{
         repo.deleteAll();
-        Planet planetToPost = new Planet(1000, "Naboo", "clima", "terreno");
+        Planet planetToPost = new Planet("1000", "Naboo", "clima", "terreno");
         String url = "http://localhost:8080/swplanets/planet/";
         //-----------
         RestTemplate restTemplate = new RestTemplate();
@@ -135,7 +178,7 @@ public class StarWarsPlanetApplicationTests {
     @Test
     public void testPutKlendathu()throws Exception{
         repo.deleteAll();
-        Planet planetToPost = new Planet(200, "Klendathu", "ugly planet", "BUG PLANET");
+        Planet planetToPost = new Planet("200", "Klendathu", "ugly planet", "BUG PLANET");
         String url = "http://localhost:8080/swplanets/planet/";
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.put(url, planetToPost);    
@@ -145,14 +188,15 @@ public class StarWarsPlanetApplicationTests {
         Planet found = repo.findByName("Klendathu").get();
         assert(found.getName().equals(planetToPost.getName()));
         assert(found.getFrequency().equals(0));
+        repo.deleteAll();
     }
     
 
     @Test
     public void testGetAll() throws MalformedURLException, IOException {
         repo.deleteAll();
-        Planet a = new Planet(50,"trantor","cool","urban");
-        Planet b = new Planet(100,"pandora","moist","jungle");
+        Planet a = new Planet("50","trantor","cool","urban");
+        Planet b = new Planet("100","pandora","moist","jungle");
         repo.insert(a);
         repo.insert(b);
         RestTemplate restTemplate = new RestTemplate();
