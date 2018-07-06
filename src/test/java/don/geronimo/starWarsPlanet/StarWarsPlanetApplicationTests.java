@@ -47,7 +47,25 @@ public class StarWarsPlanetApplicationTests {
     public void beginTest() {
         repo.deleteAll();
     }
-
+    @Test
+    public void testDelete(){
+        repo.deleteAll();
+        Planet planetToDeleteByName = new Planet(50, "Charlie", "Papa", "Hotel");
+        Planet planetToDeleteById = new Planet(100, "Easy", "Fox", "Tango");
+        repo.insert(planetToDeleteById);
+        repo.insert(planetToDeleteByName);
+        
+        RestTemplate restTemplate = new RestTemplate();
+        String urlId = "http://localhost:8080/swplanets/planet/id/{id}";
+        restTemplate.delete(urlId, "100");
+        
+        String urlName = "http://localhost:8080/swplanets/planet/name/{name}";
+        restTemplate.delete(urlName, "Charlie");
+        
+        List<Planet> planets = repo.findAll();
+        assert(planets.size()==0);
+    }
+    
     @Test
     public void testInsertInDb() {
         Planet p = new Planet();
@@ -112,6 +130,8 @@ public class StarWarsPlanetApplicationTests {
         assert(found.getName().equals(planetToPost.getName()));
         assert(found.getFrequency().equals(4));
     }
+    //A diferença entre Klendathu e Naboo é que Klendathu é do Tropas Estelares 
+    //e portanto tem zero aparições nos filmes.
     @Test
     public void testPutKlendathu()throws Exception{
         repo.deleteAll();

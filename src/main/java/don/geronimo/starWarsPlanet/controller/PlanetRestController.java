@@ -89,10 +89,38 @@ public class PlanetRestController {
         return null;
     }
     
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/planet/id/{id}")
     /**Deleta o planeta pelo ID**/
-    public ResponseEntity<?> delete(@PathVariable String id) {
-        return null;
+    public ResponseEntity<?> deletePlanetById(@PathVariable String id) {
+        try
+        {
+            Optional<Planet> p = repo.findById(Integer.parseInt(id));   
+            repo.delete(p.get());
+            ResponseEntity resp = new ResponseEntity("deletado", HttpStatus.OK);
+            return resp;
+        }
+        catch(NoSuchElementException ex)
+        {
+            ResponseEntity resp = new ResponseEntity("planeta não encontrado", HttpStatus.NOT_FOUND);
+            return resp;
+        }
+    }
+    
+    @DeleteMapping("/planet/name/{name}")
+    /**Deleta o planeta pelo ID**/
+    public ResponseEntity<?> deletePlanetByName(@PathVariable String name) {
+        try
+        {
+            Optional<Planet> p = repo.findByName(name);   
+            repo.delete(p.get());
+            ResponseEntity resp = new ResponseEntity("deletado", HttpStatus.OK);
+            return resp;
+        }
+        catch(NoSuchElementException ex)
+        {
+            ResponseEntity resp = new ResponseEntity("planeta não encontrado", HttpStatus.NOT_FOUND);
+            return resp;
+        }
     }
     /*
     @ExceptionHandler(NumberFormatException.class)
