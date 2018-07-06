@@ -42,15 +42,33 @@ public class PlanetRestController {
     
     @GetMapping("/planet/id/{id}")
     /** Pega o planeta pelo ID. Esse id não é o id do planeta no serviço de star wars, embora possa ser identico**/
-    public Planet getById(@PathVariable String id) {
-        final int _id = Integer.parseInt(id);
-        return repo.findById(id).get();
+    public ResponseEntity<Planet> getById(@PathVariable String id) {
+
+        Optional<Planet> p = repo.findById(id);
+        if(p.isPresent())
+        {
+            ResponseEntity resp = new ResponseEntity(p, HttpStatus.OK);
+            return resp;   
+        }else{
+            Planet error = new Planet("", "", "", "");
+            ResponseEntity resp = new ResponseEntity(error, HttpStatus.NOT_FOUND);
+            return resp;            
+        }
     }
 
     @GetMapping("/planet/name/{name}")
     /**Pega pelo nome. O nome tem que coincidir exatamente, é case sensitive também.**/
-    public Planet getByName(@PathVariable String name) {
-        return repo.findByName(name).get();
+    public ResponseEntity<Planet> getByName(@PathVariable String name) {
+        Optional<Planet> p = repo.findByName(name);
+        if(p.isPresent())
+        {
+            ResponseEntity resp = new ResponseEntity(p, HttpStatus.OK);
+            return resp;   
+        }else{
+            Planet error = new Planet("", "", "", "");
+            ResponseEntity resp = new ResponseEntity(error, HttpStatus.NOT_FOUND);
+            return resp;            
+        }
     }
     
     private void setPlanetFrequency(Planet p) throws IOException{
