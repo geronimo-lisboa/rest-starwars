@@ -39,6 +39,19 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+                
+<!-- we need httpclient here for client certificate handling -->
+<dependency>
+    <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>httpclient</artifactId>
+</dependency>   
+
+  <dependency>
+   <groupId>commons-collections</groupId>
+   <artifactId>commons-collections</artifactId>
+   <version>3.2.1</version>
+  </dependency>
+
 	</dependencies>
 
 	<build>

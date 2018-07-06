@@ -1,5 +1,6 @@
 package don.geronimo.starWarsPlanet;
 
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import don.geronimo.starWarsPlanet.model.Planet;
@@ -21,8 +22,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import utils.ParameterStringBuilder;
 
@@ -90,7 +94,39 @@ public class StarWarsPlanetApplicationTests {
         ResponseEntity<Planet> re = restTemplate.getForEntity("http://localhost:8080/swplanets/planet/name/{id}", Planet.class, "fox");
         Planet returningPlanet = re.getBody();
         assertPlanets(newPlanet, returningPlanet);
+        
     }
+    
+    @Test
+    public void testPutNaboo()throws Exception{
+        repo.deleteAll();
+        Planet planetToPost = new Planet(1000, "Naboo", "clima", "terreno");
+        String url = "http://localhost:8080/swplanets/planet/";
+        //-----------
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.put(url, planetToPost);
+        
+        Thread.sleep(100);
+        
+        Planet found = repo.findByName("Naboo").get();
+        assert(found.getName().equals(planetToPost.getName()));
+        assert(found.getFrequency().equals(4));
+    }
+    @Test
+    public void testPutKlendathu()throws Exception{
+        repo.deleteAll();
+        Planet planetToPost = new Planet(200, "Klendathu", "ugly planet", "BUG PLANET");
+        String url = "http://localhost:8080/swplanets/planet/";
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.put(url, planetToPost);    
+        
+        Thread.sleep(100);
+        
+        Planet found = repo.findByName("Klendathu").get();
+        assert(found.getName().equals(planetToPost.getName()));
+        assert(found.getFrequency().equals(0));
+    }
+    
 
     @Test
     public void testGetAll() throws MalformedURLException, IOException {

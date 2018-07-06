@@ -1,11 +1,14 @@
 package don.geronimo.starWarsPlanet.controller;
 
 import don.geronimo.starWarsPlanet.model.Planet;
+import don.geronimo.starWarsPlanet.repository.PlanetApparitionsSource;
 import don.geronimo.starWarsPlanet.repository.PlanetRepository;
+import java.io.IOException;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,33 +34,63 @@ public class PlanetRestController {
     }
 
     @GetMapping("/planet/all/")
+    /** Retorna uma lista com todos os planetas.**/
     public List<Planet> getAll() {
         return repo.findAll();
     }
     
     
     @GetMapping("/planet/id/{id}")
+    /** Pega o planeta pelo ID. Esse id não é o id do planeta no serviço de star wars, embora possa ser identico**/
     public Planet getById(@PathVariable String id) {
         final int _id = Integer.parseInt(id);
         return repo.findById(_id).get();
     }
 
     @GetMapping("/planet/name/{name}")
+    /**Pega pelo nome. O nome tem que coincidir exatamente, é case sensitive também.**/
     public Planet getByName(@PathVariable String name) {
         return repo.findByName(name).get();
     }
     
-    @PutMapping("/{id}")
-    public ResponseEntity<?> put(@PathVariable String id, @RequestBody Object input) {
-        return null;
+    @PutMapping("/planet/")
+    /**Insere um planeta novo. Se o planeta já existir responde com erro. É nesse momento que eu consulto as
+     informaçoes remotas sobre o numero de aparições nos filmes e guardo no banco. A verificação do planeta já
+     existir é feita pelo nome que nem em /planet/name/{name}**/
+    public ResponseEntity<Planet> put(@RequestBody Planet input) {
+        Planet newPlanet = (Planet)input;
+        try{
+        //Se já tem um planeta com esse nome, se recusa a por, falhando com erro
+        if(repo.findByName(newPlanet.getName()).isPresent()){
+            ResponseEntity resp = new ResponseEntity(null, HttpStatus.NOT_ACCEPTABLE);
+            return resp;
+        }else{
+            //Se não, pega a qtd de aparições  https://swapi.co/api/people/?search=r2
+            PlanetApparitionsSource apparitionsSource = new PlanetApparitionsSource(newPlanet.getName());
+            Optional<Integer> amount = apparitionsSource.getNumberOfApparition();
+            newPlanet.setFrequency(amount.orElse(0));
+            //Guarda
+            Planet resultingPlanet = repo.insert(newPlanet);
+            //Retorna
+            ResponseEntity resp = new ResponseEntity(resultingPlanet, HttpStatus.OK);
+            return resp;
+        }
+        }
+        catch(IOException ex){
+            ResponseEntity resp = new ResponseEntity("erro interno", HttpStatus.INTERNAL_SERVER_ERROR);
+            return resp;   
+        }
     }
     
     @PostMapping
+    /**Insere ou atualiza o planeta dado. Também consulta as informações remotas sobre o numero de aparições
+     nos filmes**/
     public ResponseEntity<?> post(@RequestBody Object input) {
         return null;
     }
     
     @DeleteMapping("/{id}")
+    /**Deleta o planeta pelo ID**/
     public ResponseEntity<?> delete(@PathVariable String id) {
         return null;
     }
